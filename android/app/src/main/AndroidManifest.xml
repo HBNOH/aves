@@ -109,7 +109,7 @@
         android:fullBackupContent="@xml/full_backup_content"
         android:fullBackupOnly="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Aves Shuffle" tools:replace="android:label"
         android:largeHeap="true"
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"

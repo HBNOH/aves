@@ -8,7 +8,7 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val packageName = "deckers.thibault.aves"
+val packageName = "com.hbnoh.avesshuffle"
 
 // Keys
 
