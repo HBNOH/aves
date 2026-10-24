@@ -58,19 +58,28 @@ class AlbumChipSetActionDelegate extends ChipSetActionDelegate<AlbumBaseFilter> 
   SortFactor get sortFactor => settings.albumSortFactor;
 
   @override
-  set sortFactor(SortFactor factor) => settings.albumSortFactor = factor;
+  set sortFactor(SortFactor factor) {
+  albumShuffleSeed.value = null;
+  settings.albumSortFactor = factor;
+}
 
   @override
   bool get sortReverse => settings.albumSortReverse;
 
   @override
-  set sortReverse(bool value) => settings.albumSortReverse = value;
+  set sortReverse(bool value) {
+  albumShuffleSeed.value = null;
+  settings.albumSortReverse = value;
+}
 
   @override
   ChipSectionFactor get sectionFactor => settings.albumSectionFactor;
 
   @override
-  set sectionFactor(ChipSectionFactor factor) => settings.albumSectionFactor = factor;
+  set sectionFactor(ChipSectionFactor factor) {
+  albumShuffleSeed.value = null;
+  settings.albumSectionFactor = factor;
+}
 
   @override
   List<SortFactor> get sortOptions => [
@@ -103,6 +112,8 @@ class AlbumChipSetActionDelegate extends ChipSetActionDelegate<AlbumBaseFilter> 
     bool isVault(CollectionFilter filter) => filter is StoredAlbumFilter && filter.isVault;
 
     switch (action) {
+      case .shuffle:
+        return isMain && !isSelecting;
       case .createGroup:
         return true;
       case .createAlbum:
@@ -139,6 +150,8 @@ class AlbumChipSetActionDelegate extends ChipSetActionDelegate<AlbumBaseFilter> 
     required Set<AlbumBaseFilter> selectedFilters,
   }) {
     switch (action) {
+      case .shuffle:
+        return !isSelecting && itemCount > 1;
       case .delete:
         return selectedFilters.isNotEmpty && selectedFilters.every((v) => v is StoredAlbumFilter);
       case .rename:
@@ -165,6 +178,8 @@ class AlbumChipSetActionDelegate extends ChipSetActionDelegate<AlbumBaseFilter> 
     reportService.log('$runtimeType handles $action');
     switch (action) {
       // general
+      case .shuffle:
+        albumShuffleSeed.value = DateTime.now().microsecondsSinceEpoch;
       case .createAlbum:
         _createStoredAlbum(context, locked: false);
       case .createVault:

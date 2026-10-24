@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:aves/model/app_inventory.dart';
 import 'package:aves/model/covers.dart';
 import 'package:aves/model/dynamic_albums.dart';
@@ -22,6 +24,8 @@ import 'package:aves_model/aves_model.dart';
 import 'package:collection/collection.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+
+final ValueNotifier<int?> albumShuffleSeed = ValueNotifier<int?>(null);
 
 class AlbumListPage extends StatelessWidget {
   static const routeName = '/albums';
@@ -56,7 +60,7 @@ class AlbumListPage extends StatelessWidget {
                 listenable: appInventory.areAppNamesReadyNotifier,
                 builder: (context, child) {
                   return ListenableBuilder(
-                    listenable: Listenable.merge({albumGrouping, dynamicAlbums}),
+                    listenable: Listenable.merge({albumGrouping, dynamicAlbums, albumShuffleSeed}),
                     builder: (context, child) => StreamBuilder<AlbumsChangedEvent>(
                       stream: source.eventBus.on<AlbumsChangedEvent>(),
                       builder: (context, _) {
@@ -146,7 +150,19 @@ class AlbumListPage extends StatelessWidget {
       ...listedDynamicAlbums,
     };
 
-    return FilterNavigationPage.sort(settings.albumSortFactor, settings.albumSortReverse, source, filters);
+    final gridItems = FilterNavigationPage.sort(
+      settings.albumSortFactor,
+      settings.albumSortReverse,
+      source,
+      filters,
+    );
+
+    final shuffleSeed = albumShuffleSeed.value;
+    if (shuffleSeed != null) {
+      gridItems.shuffle(Random(shuffleSeed));
+    }
+
+    return gridItems;
   }
 
   static Map<ChipSectionKey, List<FilterGridItem<AlbumBaseFilter>>> groupToSections(BuildContext context, CollectionSource source, Iterable<FilterGridItem<AlbumBaseFilter>> sortedMapEntries) {

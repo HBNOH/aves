@@ -94,6 +94,7 @@ abstract class ChipSetActionDelegate<T extends CollectionFilter> with FeedbackMi
         return !useTvLayout && appMode.canNavigate && !isSelecting;
       case .toggleTitleSearch:
         return !useTvLayout && !isSelecting;
+      case .shuffle:
       case .createGroup:
       case .createAlbum:
       case .createVault:
@@ -147,6 +148,7 @@ abstract class ChipSetActionDelegate<T extends CollectionFilter> with FeedbackMi
       // browsing
       case .search:
       case .toggleTitleSearch:
+      case .shuffle:
       case .createGroup:
       case .createAlbum:
       case .createVault:
@@ -194,6 +196,7 @@ abstract class ChipSetActionDelegate<T extends CollectionFilter> with FeedbackMi
         final routeName = context.currentRouteName!;
         settings.setShowTitleQuery(routeName, !settings.getShowTitleQuery(routeName));
         context.read<Query>().toggle();
+      case .shuffle:
       case .createGroup:
       case .createAlbum:
       case .createVault:

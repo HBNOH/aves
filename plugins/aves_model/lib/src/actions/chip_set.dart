@@ -7,6 +7,7 @@ enum ChipSetAction {
   // browsing
   search,
   toggleTitleSearch,
+  shuffle,
   createGroup,
   createAlbum,
   createVault,
@@ -42,6 +43,7 @@ class ChipSetActions {
   static const browsing = <ChipSetAction?>[
     .search,
     .toggleTitleSearch,
+    .shuffle,
     null,
     .map,
     .slideshow,

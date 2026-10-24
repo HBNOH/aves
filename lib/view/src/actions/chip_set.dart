@@ -17,6 +17,7 @@ extension ExtraChipSetActionView on ChipSetAction {
       .toggleTitleSearch =>
         // different data depending on toggle state
         l10n.collectionActionShowTitleSearch,
+      .shuffle => l10n.settingsSlideshowShuffle,
       .createGroup => l10n.chipActionCreateGroup,
       .createAlbum => l10n.chipActionCreateAlbum,
       .createVault => l10n.chipActionCreateVault,
@@ -55,6 +56,7 @@ extension ExtraChipSetActionView on ChipSetAction {
       .toggleTitleSearch =>
         // different data depending on toggle state
         AIcons.showTitleFilter,
+      .shuffle => AIcons.sortOrder,
       .createGroup => AIcons.add,
       .createAlbum => AIcons.add,
       .createVault => AIcons.vaultAdd,
