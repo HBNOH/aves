@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:aves/locale/aves_locale.dart';
 import 'package:aves/locale/calendar/calendar_utils.dart';
@@ -43,6 +44,7 @@ class CollectionLens with ChangeNotifier {
   int? id;
   bool listenToSource, allowStacks, fixedSort;
   List<AvesEntry>? fixedSelection;
+  int? _shuffleSeed;
 
   // temporary entries created for stacks of original entries
   final Set<AvesEntry> _syntheticEntries = {};
@@ -117,17 +119,28 @@ class CollectionLens with ChangeNotifier {
   }
 
   CollectionLens copyWith({
-    CollectionSource? source,
-    Set<CollectionFilter>? filters,
-    bool? listenToSource,
-    List<AvesEntry>? fixedSelection,
-  }) => CollectionLens(
+  CollectionSource? source,
+  Set<CollectionFilter>? filters,
+  bool? listenToSource,
+  List<AvesEntry>? fixedSelection,
+}) {
+  final copy = CollectionLens(
     source: source ?? this.source,
     filters: filters ?? this.filters,
     id: id,
     listenToSource: listenToSource ?? this.listenToSource,
     fixedSelection: fixedSelection ?? this.fixedSelection,
   );
+
+  final shuffleSeed = _shuffleSeed;
+  if (shuffleSeed != null) {
+    copy._shuffleSeed = shuffleSeed;
+    copy._applySort();
+    copy._applySection();
+  }
+
+  return copy;
+}
 
   void _disposeSyntheticEntries() {
     _syntheticEntries.forEach((v) => v.dispose());
@@ -143,7 +156,15 @@ class CollectionLens with ChangeNotifier {
     return _sectionedEntries!;
   }
 
+  void shuffle() {
+    _shuffleSeed = DateTime.now().microsecondsSinceEpoch;
+    _applySort();
+    _applySection();
+  }
+
   bool get showHeaders {
+    if (_shuffleSeed != null) return false;
+
     bool showAlbumHeaders() => !filters.any((v) => v is StoredAlbumFilter && !v.reversed);
 
     switch (sortFactor) {
@@ -314,10 +335,14 @@ class CollectionLens with ChangeNotifier {
     if (sortReverse) {
       _filteredSortedEntries = _filteredSortedEntries.reversed.toList();
     }
+    final shuffleSeed = _shuffleSeed;
+    if (shuffleSeed != null) {
+      _filteredSortedEntries.shuffle(Random(shuffleSeed));
+    }
   }
 
   void _applySection() {
-    if (fixedSort) {
+    if (fixedSort || _shuffleSeed != null) {
       sections = Map.fromEntries([
         MapEntry(const SectionKey(), _filteredSortedEntries),
       ]);
@@ -424,6 +449,12 @@ class CollectionLens with ChangeNotifier {
     final sortFactorChanged = oldSortFactor != sortFactor;
     final sortOrderChanged = oldSortReverse != sortReverse;
     final sectionFactorChanged = oldSectionFactor != sectionFactor;
+    final layoutChanged = oldTileLayout != tileLayout || sortFactorChanged || sortOrderChanged || sectionFactorChanged || oldCalendar != calendar;
+
+    final shuffleCleared = _shuffleSeed != null && layoutChanged;
+    if (shuffleCleared) {
+      _shuffleSeed = null;
+    }
 
     final isCalendarLayout = tileLayout == .calendar;
     final isCalendarLayoutChanged = (oldTileLayout == .calendar) != (isCalendarLayout);
@@ -431,7 +462,7 @@ class CollectionLens with ChangeNotifier {
     final burstStackChanged = !const DeepCollectionEquality.unordered().equals(oldBurstPatterns, burstPatterns);
 
     final needFilter = burstStackChanged || dateStackChanged;
-    final needSort = needFilter || sortFactorChanged || sortOrderChanged;
+    final needSort = needFilter || sortFactorChanged || sortOrderChanged || shuffleCleared;
     final needSection = needSort || sectionFactorChanged || oldCalendar != calendar;
 
     if (needFilter) {

@@ -45,6 +45,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:aves/model/filters/covered/stored_album.dart';
 
 class const CollectionAppBar({
   super.key,
@@ -367,14 +368,24 @@ class _CollectionAppBarState extends State<CollectionAppBar> with RouteAware, Si
     final isSelecting = selection.isSelecting;
     final selectedItemCount = selection.selectedItemCount;
 
-    bool isVisible(EntrySetAction action) => _actionDelegate.isVisible(
-      action,
-      appMode: appMode,
-      isSelecting: isSelecting,
-      itemCount: collection.entryCount,
-      selectedItemCount: selectedItemCount,
-      isTrash: isTrash,
-    );
+    bool isVisible(EntrySetAction action) {
+      if (action == .shuffle &&
+          !collection.visibleFilters.any(
+            (filter) => filter is StoredAlbumFilter || filter is DynamicAlbumFilter,
+          )) {
+        return false;
+      }
+
+      return _actionDelegate.isVisible(
+        action,
+        appMode: appMode,
+        isSelecting: isSelecting,
+        itemCount: collection.entryCount,
+        selectedItemCount: selectedItemCount,
+        isTrash: isTrash,
+      );
+    }
+
     bool canApply(EntrySetAction action) => _actionDelegate.canApply(
       action,
       isSelecting: isSelecting,
@@ -788,6 +799,8 @@ class _CollectionAppBarState extends State<CollectionAppBar> with RouteAware, Si
       case .selectNone:
         context.read<Selection<AvesEntry>>().clearSelection();
       // browsing
+      case .shuffle:
+        collection.shuffle();
       case .searchCollection:
       case .toggleLayoutBar:
       case .toggleTitleSearch:

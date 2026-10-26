@@ -20,6 +20,7 @@ extension ExtraEntrySetActionView on EntrySetAction {
       .toggleTitleSearch =>
         // different data depending on toggle state
         l10n.collectionActionShowTitleSearch,
+      .shuffle => l10n.settingsSlideshowShuffle,
       .addDynamicAlbum => l10n.collectionActionAddDynamicAlbum,
       .addShortcut => l10n.collectionActionAddShortcut,
       .setHome => l10n.collectionActionSetHome,
@@ -74,6 +75,7 @@ extension ExtraEntrySetActionView on EntrySetAction {
       .toggleTitleSearch =>
         // different data depending on toggle state
         AIcons.showTitleFilter,
+      .shuffle => AIcons.sortOrder,
       .addDynamicAlbum => AIcons.dynamicAlbum,
       .addShortcut => AIcons.addShortcut,
       .setHome => AIcons.home,

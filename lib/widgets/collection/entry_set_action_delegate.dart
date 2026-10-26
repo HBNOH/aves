@@ -66,6 +66,7 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:aves/model/filters/covered/stored_album.dart';
 
 class EntrySetActionDelegate with FeedbackMixin, PermissionAwareMixin, SizeAwareMixin, EntryEditorMixin, EntryStorageMixin, VaultAwareMixin {
   bool isVisible(
@@ -96,6 +97,8 @@ class EntrySetActionDelegate with FeedbackMixin, PermissionAwareMixin, SizeAware
         return !useTvLayout;
       case .toggleTitleSearch:
         return !isSelecting && !useTvLayout;
+      case .shuffle:
+        return isMain && !isSelecting && !isTrash;
       case .addShortcut:
         return isMain && !isSelecting && !isTrash && device.canPinShortcut;
       case .addDynamicAlbum:
@@ -203,6 +206,12 @@ class EntrySetActionDelegate with FeedbackMixin, PermissionAwareMixin, SizeAware
         return true;
       case .pickMultipleMedia:
         return hasSelection;
+      case .shuffle:
+        return !isSelecting &&
+            itemCount > 1 &&
+            collection.visibleFilters.any(
+              (filter) => filter is StoredAlbumFilter || filter is DynamicAlbumFilter,
+            );
     }
   }
 
@@ -284,6 +293,8 @@ class EntrySetActionDelegate with FeedbackMixin, PermissionAwareMixin, SizeAware
         _pickCollectionFilters(context);
       case .pickMultipleMedia:
         _pickMultipleMedia(context);
+      case .shuffle:
+        break;
     }
   }
 
