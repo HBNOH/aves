@@ -1,8 +1,10 @@
 import 'package:aves/app_mode.dart';
 import 'package:aves/model/covers.dart';
 import 'package:aves/model/entry/entry.dart';
+import 'package:aves/model/filters/container/set_and.dart';
 import 'package:aves/model/filters/container/set_or.dart';
 import 'package:aves/model/filters/covered/stored_album.dart';
+import 'package:aves/model/filters/covered/tag.dart';
 import 'package:aves/model/filters/filters.dart';
 import 'package:aves/model/grouping/common.dart';
 import 'package:aves/model/query.dart';
@@ -26,6 +28,7 @@ import 'package:aves/widgets/dialogs/aves_confirmation_dialog.dart';
 import 'package:aves/widgets/dialogs/aves_dialog.dart';
 import 'package:aves/widgets/dialogs/change_layout_dialog.dart';
 import 'package:aves/widgets/dialogs/filter_editors/cover_selection_dialog.dart';
+import 'package:aves/widgets/dialogs/selection_dialogs/single_selection.dart';
 import 'package:aves/widgets/map/map_page.dart';
 import 'package:aves/widgets/search/collection_search_page_route.dart';
 import 'package:aves/widgets/stats/stats_page.dart';
@@ -35,6 +38,11 @@ import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+
+enum _TagMatchMode {
+  all,
+  any,
+}
 
 abstract class ChipSetActionDelegate<T extends CollectionFilter> with FeedbackMixin, PermissionAwareMixin, SizeAwareMixin, VaultAwareMixin {
   Iterable<FilterGridItem<T>> get allItems;
@@ -307,7 +315,33 @@ abstract class ChipSetActionDelegate<T extends CollectionFilter> with FeedbackMi
     final filters = getSelectedFilters(context);
     if (filters.isEmpty) return;
 
-    final filter = filters.length > 1 ? SetOrFilter(filters) : filters.first;
+    CollectionFilter filter;
+
+    if (filters.length > 1 && filters.every((v) => v is TagFilter)) {
+      final l10n = context.l10n;
+      final matchMode = await showAvesDialog<_TagMatchMode>(
+        context: context,
+        builder: (context) => AvesSingleSelectionDialog<_TagMatchMode>(
+          initialValue: _TagMatchMode.all,
+          title: l10n.filterTagMatchModeTitle,
+          options: {
+            _TagMatchMode.all: l10n.filterTagMatchAllLabel,
+            _TagMatchMode.any: l10n.filterTagMatchAnyLabel,
+          },
+          confirmationButtonLabel: l10n.applyButtonLabel,
+        ),
+        routeSettings: const RouteSettings(name: AvesSingleSelectionDialog.routeName),
+      );
+      if (matchMode == null) return;
+
+      filter = switch (matchMode) {
+        _TagMatchMode.all => SetAndFilter(filters),
+        _TagMatchMode.any => SetOrFilter(filters),
+      };
+    } else {
+      filter = filters.length > 1 ? SetOrFilter(filters) : filters.first;
+    }
+
     await Navigator.maybeOf(context)?.push(
       MaterialPageRoute(
         settings: const RouteSettings(name: CollectionPage.routeName),
